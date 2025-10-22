@@ -11,7 +11,7 @@
             <property name="jakarta.persistence.jdbc.password" value="toor"/>
 
             <!-- Configuration de génération de schéma -->
-            <property name="jakarta.persistence.schema-generation.database.action" value="update"/>
+            <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
 
             <!-- Affichage des requêtes SQL -->
             <property name="hibernate.show_sql" value="true"/>

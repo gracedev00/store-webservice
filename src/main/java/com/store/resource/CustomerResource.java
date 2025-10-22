@@ -1,10 +1,12 @@
 package com.store.resource;
 
 import com.store.entity.Customer;
-import com.store.service.CustomerService;
-import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 @Path("/customers")
@@ -12,33 +14,70 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 public class CustomerResource {
 
-    @Inject
-    private CustomerService customerService;
+    @PersistenceContext(unitName = "storePU")
+    private EntityManager em;
 
     @GET
-    public List<Customer> getAll() {
-        return customerService.getAllCustomers();
+    public List<Customer> getAllCustomers() {
+        return em.createQuery("SELECT c FROM Customer c", Customer.class)
+                .getResultList();
     }
 
     @GET
     @Path("/{id}")
-    public Customer getById(@PathParam("id") Long id) {
-        return customerService.getCustomerById(id);
+    public Response getCustomerById(@PathParam("id") Long id) {
+        Customer customer = em.find(Customer.class, id);
+        if (customer == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Customer not found with id: " + id)
+                    .build();
+        }
+        return Response.ok(customer).build();
     }
 
     @POST
-    public void create(Customer customer) {
-        customerService.createCustomer(customer);
+    @Transactional
+    public Response createCustomer(Customer customer) {
+        try {
+            em.persist(customer);
+            return Response.status(Response.Status.CREATED).entity(customer).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Error creating customer: " + e.getMessage())
+                    .build();
+        }
     }
 
     @PUT
-    public void update(Customer customer) {
-        customerService.updateCustomer(customer);
+    @Path("/{id}")
+    @Transactional
+    public Response updateCustomer(@PathParam("id") Long id, Customer updatedCustomer) {
+        Customer existingCustomer = em.find(Customer.class, id);
+        if (existingCustomer == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Customer not found with id: " + id)
+                    .build();
+        }
+
+        existingCustomer.setName(updatedCustomer.getName());
+        existingCustomer.setEmail(updatedCustomer.getEmail());
+
+        em.merge(existingCustomer);
+        return Response.ok(existingCustomer).build();
     }
 
     @DELETE
     @Path("/{id}")
-    public void delete(@PathParam("id") Long id) {
-        customerService.deleteCustomer(id);
+    @Transactional
+    public Response deleteCustomer(@PathParam("id") Long id) {
+        Customer customer = em.find(Customer.class, id);
+        if (customer == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Customer not found with id: " + id)
+                    .build();
+        }
+
+        em.remove(customer);
+        return Response.noContent().build();
     }
 }

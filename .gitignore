@@ -1,20 +1,33 @@
-# Fichiers de compilation
+# Fichiers de compilation Maven
 target/
 *.class
 *.jar
 *.war
 *.ear
 
-# IDE
+# Fichiers d'IDE
 .idea/
 *.iml
 *.iws
 
-# Système
+# Fichiers système
 .DS_Store
 Thumbs.db
 
-# Clés SSH
+# Fichiers sensibles
 *_rsa
 *_rsa.pub
 21353192*
+*.key
+*.pem
+
+# Fichiers temporaires
+*.tmp
+*.temp
+
+# Logs
+*.log
+
+# Fichiers de base de données
+*.db
+*.sqlite
